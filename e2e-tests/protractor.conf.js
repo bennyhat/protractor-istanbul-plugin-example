@@ -1,15 +1,23 @@
 exports.config = {
-  allScriptsTimeout: 11000,
+  allScriptsTimeout: 110000,
+
+  plugins : [{
+    package: 'protractor-istanbul-plugin',
+    logAssertions: true,
+    failAssertions: true
+  }],
 
   specs: [
     '*.js'
   ],
 
   capabilities: {
-    'browserName': 'chrome'
+    'browserName': 'firefox'
   },
 
-  baseUrl: 'http://localhost:8000/app/',
+  directConnect: true,
+
+  baseUrl: 'http://localhost:8000/',
 
   framework: 'jasmine',
 
