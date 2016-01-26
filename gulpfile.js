@@ -1,11 +1,12 @@
 var gulp = require('gulp');
 var server = require('gulp-serv');
-var istanbul = require('gulp-istanbul');
+var gulpIstanbul = require('gulp-istanbul');
 var protractor = require('gulp-protractor').protractor;
 var webdriverUpdate = require("gulp-protractor").webdriver_update;
 var path = require('path');
-var data = require('gulp-data');
-var gulpFn  = require('gulp-fn');
+var through = require('through2');
+var istanbul = require('istanbul');
+var fs = require('fs');
 
 gulp.task('test:server', function(done) {
   server.start({
@@ -22,22 +23,26 @@ gulp.task('test:files', function(done) {
 
 gulp.task('test:instrument', function(done) {
   return gulp.src(['app/**/*.js','!app/bower_components/**'])
-    .pipe(istanbul({
+    .pipe(gulpIstanbul({
         coverageVariable: '__coverage__'
       }))
     .pipe(gulp.dest('tmp/'));
 });
 
 gulp.task('test:report-coverage', function(done) {
-  global['__coverage__'] = {};
+  var collector = new istanbul.Collector();
+  var textReport = istanbul.Report.create('text');
+  var textSummaryReport = istanbul.Report.create('text-summary');
 
   return gulp.src('./coverage/*.json')
-    .pipe(gulpFn(function(file) {
-        global['__coverage__'][path.resolve(file.path)] = require(file.path);
+    .pipe(through.obj(function (file, enc, callback) {
+        collector.add(JSON.parse(fs.readFileSync(file.path, 'utf8')));
+	return callback();
       }))
-    .pipe(istanbul.summarizeCoverage({
-      coverageVariable: '__coverage__'
-    }));
+    .on('end', function () {
+    	textReport.writeReport(collector,true);
+	textSummaryReport.writeReport(collector, true);
+    });
 });
 
 gulp.task('test:webdriver-update', webdriverUpdate);

@@ -26,7 +26,7 @@ describe('my app', function() {
   });
 
 
-  describe('view2', function() {
+/*  describe('view2', function() {
 
     beforeEach(function() {
       browser.get('index.html#/view2');
@@ -38,5 +38,5 @@ describe('my app', function() {
         toMatch(/partial for view 2/);
     });
 
-  });
+  }); */
 });
