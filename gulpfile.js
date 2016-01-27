@@ -7,21 +7,19 @@ var path = require('path');
 var through = require('through2');
 var istanbul = require('istanbul');
 var fs = require('fs');
+var rimraf = require('gulp-rimraf');
 
-gulp.task('test:server', function(done) {
-  server.start({
-    root: __dirname + '/tmp',
-    host: '0.0.0.0',
-    port: 8000
-  }, done);
+gulp.task('test:clean', function(done) {
+  return gulp.src(['tmp','coverage'], { read: false })
+    .pipe(rimraf({force:true}));
 });
 
-gulp.task('test:files', function(done) {
+gulp.task('test:files', ['test:clean'], function(done) {
   return gulp.src(['app/**'])
     .pipe(gulp.dest('tmp/'));
 });
 
-gulp.task('test:instrument', function(done) {
+gulp.task('test:instrument', ['test:files'], function(done) {
   return gulp.src(['app/**/*.js','!app/bower_components/**'])
     .pipe(gulpIstanbul({
         coverageVariable: '__coverage__'
@@ -29,7 +27,26 @@ gulp.task('test:instrument', function(done) {
     .pipe(gulp.dest('tmp/'));
 });
 
-gulp.task('test:report-coverage', function(done) {
+gulp.task('test:server', ['test:instrument'], function(done) {
+  server.start({
+    root: __dirname + '/tmp',
+    host: '0.0.0.0',
+    port: 8000
+  }, done);
+});
+
+gulp.task('test:webdriver-update', webdriverUpdate);
+
+gulp.task('test:integration',['test:webdriver-update','test:server'], function(done) {
+  return gulp.src(["./e2e-tests/**/*.js"])
+    .pipe(protractor({
+      configFile: "e2e-tests/protractor.conf.js",
+      args: ['--baseUrl', 'http://127.0.0.1:8000']
+    }))
+    .on('error', function(e) { throw e })
+});
+
+gulp.task('test:report-coverage', ['test:integration'], function(done) {
   var collector = new istanbul.Collector();
   var textReport = istanbul.Report.create('text');
   var textSummaryReport = istanbul.Report.create('text-summary');
@@ -42,16 +59,6 @@ gulp.task('test:report-coverage', function(done) {
     .on('end', function () {
     	textReport.writeReport(collector,true);
 	textSummaryReport.writeReport(collector, true);
+	server.stop();
     });
-});
-
-gulp.task('test:webdriver-update', webdriverUpdate);
-
-gulp.task('test:integration',['test:webdriver-update'], function(done) {
-  gulp.src(["./e2e-tests/**/*.js"])
-    .pipe(protractor({
-      configFile: "e2e-tests/protractor.conf.js",
-      args: ['--baseUrl', 'http://127.0.0.1:8000']
-    }))
-    .on('error', function(e) { throw e })
 });
