@@ -25,7 +25,7 @@ describe('my app', function() {
 
   });
 
-
+  // test is commented out to demonstrate lack of coverage
 /*  describe('view2', function() {
 
     beforeEach(function() {
