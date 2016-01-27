@@ -28,3 +28,6 @@ The main features of this particular example are the ```package.json``` setup, t
  - Runs the protractor tests against that web server
  - Creates a coverage report based on the files in the coverage folder - ```istanbul report --include "coverage/*.json" lcov text text-summary```
  - Cleans up the tmp and coverage directories between test runs
+
+### TODO
+I'll try and find time eventually to just pack this into a docker image that can be run. That will help take care of all the wild NodeJS issues and dependencies, hopefully. Otherwise, I badly need to get the actual plugin updated to work with newer Protractor versions.
